@@ -1,0 +1,2 @@
+# TruckStationFinder
+Django project
