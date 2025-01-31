@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from bson import json_util
 import json
 from .calculation import haversine
+from .gmapsroute import generate_google_maps_link
 
 # Create your views here.
 
@@ -61,6 +62,7 @@ def findStation(request):
                 retail_price = item.get('retail_price', 0) or 0  # Eğer None ise 0 olarak al
                 item['cost'] = (distance / 10) * retail_price
                 item['distance'] = distance
+                item['gmaps_link'] = generate_google_maps_link(latitude,longitude,item.get('latitude'),item.get('longitude'))
                 state_list.append(item)
 
     # 'cost' değerine göre sıralama yap
