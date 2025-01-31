@@ -19,3 +19,5 @@ lat1, lon1 = 41.2436, -87.8392  # Konum 1 (Manteno, IL)
 lat2, lon2 = 38.9595, -85.8903  # Konum 2 (Seymour, IN)
 distance = haversine(lat1, lon1, lat2, lon2)
 print(f"Mesafe: {distance:.2f} km")  # Çıktı: ~338.53 km
+
+#This function will calculate distance with using geocodes.
