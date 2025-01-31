@@ -4,13 +4,30 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from bson import json_util
 import json
+from .calculation import haversine
 
 # Create your views here.
 
 def findStation(request):
-    cursorObject = stationCollection.find() #Only OK state datas
+    latitude = request.GET.get('latitude')
+    longitude = request.GET.get('longitude')
+
+    if latitude is None or longitude is None:
+        return JsonResponse({
+            "error": "Hem 'latitude' hem de 'longitude' parametrelerini sağlamalısınız!"
+        }, status=400)
+
+    try:
+        latitude = float(latitude)
+        longitude = float(longitude)
+    except ValueError:
+        return JsonResponse({
+            "error": "'latitude' ve 'longitude' değerleri geçerli sayılar olmalıdır!"
+        }, status=400)
+
+    cursorObject = stationCollection.find()
     listObject = list(cursorObject)
-    jsonObject = json_util.dumps(listObject)
+
     product_objects = [
         {
             "id": str(p['_id']),  # MongoDB'nin "_id" alanını stringe dönüştür
@@ -21,14 +38,37 @@ def findStation(request):
             "state": p.get('State', None),
             "rack_id": p.get('Rack ID', None),
             "retail_price": p.get('Retail Price', None),
+            "latitude": p.get('latitude', None),
+            "longitude": p.get('longitude', None),
         }
         for p in listObject
-    ]#json list
-    # state_list = []
-    # for item in product_objects :
-    #     if item.get('state') and item.get('state') not in state_list:
-    #         state_list.append(item.get('state'))#All states of breakpoints
-    return JsonResponse(product_objects,safe=False)
+    ]
+
+    state_list = []
+
+    for item in product_objects:
+        if item.get('latitude') is not None and item.get('longitude') is not None:
+            distance = haversine(
+                float(item.get('latitude')),
+                float(item.get('longitude')),
+                latitude,
+                longitude
+            )
+
+            # Eğer mesafe 500 km'den küçükse
+            if distance <= 500:
+                # JSON'a 'cost' anahtarı ekle
+                retail_price = item.get('retail_price', 0) or 0  # Eğer None ise 0 olarak al
+                item['cost'] = (distance / 10) * retail_price
+                item['distance'] = distance
+                state_list.append(item)
+
+    # 'cost' değerine göre sıralama yap
+    sorted_state_list = sorted(state_list, key=lambda x: x['cost'])
+
+    return JsonResponse(sorted_state_list, safe=False)
+
+
 
 def findOne(request):
     cursorObject = stationCollection.find() #datas

@@ -16,6 +16,8 @@ class Truckstop(models.Model):
     state = models.CharField(max_length=2)  # "State" alanı (örnek: VA)
     rack_id = models.IntegerField()  # "Rack ID" alanı
     retail_price = models.DecimalField(max_digits=6, decimal_places=3)  # "Retail Price" alanı
+    latitude = models.FloatField()  # Yeni "latitude" alanı
+    longitude = models.FloatField()  # Yeni "longitude" alanı
 
     class Meta:
         db_table = "stationdb"  # MongoDB'deki koleksiyon adı
